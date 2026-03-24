@@ -376,6 +376,59 @@ This will show detailed request information including method, path, headers, and
 
 ---
 
+## Docker
+
+Mimicker is available as a Docker image for easy use in containerized environments.
+
+### Build the Image
+
+```bash
+docker build -t mimicker .
+```
+
+### Run with a Stub File
+
+Create a `stubs.py` file to define your routes:
+
+```python
+from mimicker.mimicker import mimicker, get, post
+import signal
+
+server = mimicker(8080).routes(
+    get("/hello").body({"message": "Hello, World!"}).status(200),
+    post("/submit").body({"result": "OK"}).status(201),
+)
+
+signal.pause()
+```
+
+Then mount it into the container:
+
+```bash
+docker run -p 8080:8080 -v ./stubs.py:/app/stubs.py mimicker python /app/stubs.py
+```
+
+### Extend the Image
+
+You can also use the Mimicker image as a base for your own:
+
+```dockerfile
+FROM mimicker
+
+COPY stubs.py .
+CMD ["python", "stubs.py"]
+```
+
+### Environment Variables
+
+- `MIMICKER_LOG_LEVEL` — Set the log level (`DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`). Defaults to `INFO`.
+
+```bash
+docker run -p 8080:8080 -e MIMICKER_LOG_LEVEL=DEBUG -v ./stubs.py:/app/stubs.py mimicker python /app/stubs.py
+```
+
+---
+
 ## Requirements
 Mimicker supports Python 3.7 and above.
 
